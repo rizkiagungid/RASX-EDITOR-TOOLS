@@ -120,15 +120,76 @@ export async function canvasToIcoBlob(canvas, size = 64) {
   return new Blob([buffer], { type: 'image/x-icon' });
 }
 
-export function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
+export function downloadCanvas(canvas, filename, mimeType = 'image/jpeg', quality = 0.92) {
+  let safeFilename = (filename || 'image.jpg').trim();
+  if (!/\.[a-zA-Z0-9]+$/.test(safeFilename)) {
+    safeFilename += mimeType === 'image/png' ? '.png' : mimeType === 'image/webp' ? '.webp' : '.jpg';
+  }
+
+  const dataUrl = canvas.toDataURL(mimeType, quality);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
+  a.style.display = 'none';
+  a.href = dataUrl;
+  a.download = safeFilename;
+  a.setAttribute('download', safeFilename);
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => {
+    if (a.parentNode) document.body.removeChild(a);
+  }, 500);
+}
+
+export async function downloadBlob(blob, filename) {
+  if (!blob) return;
+
+  let safeFilename = (filename || 'download.jpg').trim();
+  if (!/\.[a-zA-Z0-9]+$/.test(safeFilename)) {
+    const ext = blob.type === 'image/png' ? '.png' :
+                blob.type === 'image/webp' ? '.webp' :
+                blob.type === 'application/zip' ? '.zip' : '.jpg';
+    safeFilename += ext;
+  }
+
+  // 1. Data URL for files < 60MB (Fixes Chrome UUID download bug where a.download is ignored on blob: URLs)
+  if (blob.size < 60 * 1024 * 1024) {
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = dataUrl;
+      a.download = safeFilename;
+      a.setAttribute('download', safeFilename);
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (a.parentNode) document.body.removeChild(a);
+      }, 500);
+      return;
+    } catch (err) {
+      console.warn('Data URL download fallback to Blob URL:', err);
+    }
+  }
+
+  // 2. Blob URL approach for large files
+  const file = new File([blob], safeFilename, { type: blob.type || 'application/octet-stream' });
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = safeFilename;
+  a.setAttribute('download', safeFilename);
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    if (a.parentNode) document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
+  }, 500);
 }
 
 export async function downloadZip(files, zipFilename = 'rasx-processed-images.zip') {

@@ -1272,5 +1272,190 @@ export const ToolHandlers = {
       const name = fileInfo.outputName;
       return { canvas, blob, name, originalSize: item.file.size, newSize: blob.size };
     }
+  },
+
+  // 13. PDF TO JPG
+  'pdf-to-jpg': {
+    initControls(container, state, updatePreview) {
+      container.innerHTML = `
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">PDF to JPG Options</div>
+          
+          <div class="control-group">
+            <div class="control-label">
+              <span>Conversion Mode</span>
+            </div>
+            <div class="segmented-control" id="pdfModeSwitch">
+              <button class="segment-btn ${state.pdfMode !== 'extract' ? 'active' : ''}" data-mode="pages">Page to JPG</button>
+              <button class="segment-btn ${state.pdfMode === 'extract' ? 'active' : ''}" data-mode="extract">Extract Images</button>
+            </div>
+            <p style="font-size: 0.76rem; color: var(--text-tertiary); margin-top: 6px;" id="pdfModeHelp">
+              ${state.pdfMode === 'extract' ? 'Extract images or render content at maximum resolution.' : 'Converts every PDF page into a crisp JPG picture.'}
+            </p>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>JPG Image Quality</span>
+              <span class="control-badge-val" id="pdfQualityVal">${Math.round((state.quality || 0.92) * 100)}%</span>
+            </div>
+            <input type="range" class="slider-input" id="pdfQuality" min="30" max="100" value="${Math.round((state.quality || 0.92) * 100)}">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>Output Resolution (DPI)</span>
+            </div>
+            <select class="form-input" id="pdfDpi">
+              <option value="1.0" ${state.scale === 1.0 ? 'selected' : ''}>Standard (72 DPI - Web Fast)</option>
+              <option value="1.5" ${state.scale === 1.5 ? 'selected' : ''}>Medium (108 DPI - Crisp)</option>
+              <option value="2.0" ${!state.scale || state.scale === 2.0 ? 'selected' : ''}>High Quality (144 DPI - Recommended)</option>
+              <option value="3.0" ${state.scale === 3.0 ? 'selected' : ''}>Ultra HD (216 DPI - Print Sharp)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>Page Background</span>
+            </div>
+            <select class="form-input" id="pdfBgColor">
+              <option value="#ffffff" ${!state.bgColor || state.bgColor === '#ffffff' ? 'selected' : ''}>White Background (Standard JPG)</option>
+              <option value="#f8fafc" ${state.bgColor === '#f8fafc' ? 'selected' : ''}>Off-White / Soft Gray</option>
+              <option value="#0f172a" ${state.bgColor === '#0f172a' ? 'selected' : ''}>Dark / Midnight</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">PDF Document Info</div>
+          <div class="stats-box" id="pdfDocStats">
+            <div class="stats-row"><span>Document:</span><b id="pdfDocName">--</b></div>
+            <div class="stats-row"><span>Total Pages:</span><b id="pdfDocPages">--</b></div>
+            <div class="stats-row"><span>Current Page:</span><b id="pdfCurrentPage" style="color: var(--primary);">--</b></div>
+            <div class="stats-row"><span>Output Format:</span><b style="color: #ef4444;">JPG (.jpg)</b></div>
+          </div>
+        </div>
+      `;
+
+      state.pdfMode = state.pdfMode || 'pages';
+      state.quality = state.quality !== undefined ? state.quality : 0.92;
+      state.scale = state.scale || 2.0;
+      state.bgColor = state.bgColor || '#ffffff';
+
+      const modeBtns = container.querySelectorAll('#pdfModeSwitch .segment-btn');
+      const modeHelp = container.querySelector('#pdfModeHelp');
+      const qualityInput = container.querySelector('#pdfQuality');
+      const qualityVal = container.querySelector('#pdfQualityVal');
+      const dpiSelect = container.querySelector('#pdfDpi');
+      const bgSelect = container.querySelector('#pdfBgColor');
+
+      modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.pdfMode = btn.dataset.mode;
+          if (modeHelp) {
+            modeHelp.textContent = state.pdfMode === 'extract'
+              ? 'Extract images or render content at maximum resolution.'
+              : 'Converts every PDF page into a crisp JPG picture.';
+          }
+          updatePreview();
+        });
+      });
+
+      qualityInput.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        qualityVal.textContent = `${val}%`;
+        state.quality = val / 100;
+        updatePreview();
+      });
+
+      dpiSelect.addEventListener('change', (e) => {
+        state.scale = parseFloat(e.target.value);
+        updatePreview();
+      });
+
+      bgSelect.addEventListener('change', (e) => {
+        state.bgColor = e.target.value;
+        updatePreview();
+      });
+    },
+
+    async process(item, state) {
+      let canvas;
+      const scale = state.scale || 2.0;
+      const quality = state.quality !== undefined ? state.quality : 0.92;
+      const bgColor = state.bgColor || '#ffffff';
+
+      // Update sidebar info
+      const docNameEl = document.getElementById('pdfDocName');
+      const docPagesEl = document.getElementById('pdfDocPages');
+      const currPageEl = document.getElementById('pdfCurrentPage');
+
+      if (docNameEl && item.pdfFile) {
+        docNameEl.textContent = item.pdfFile.name.length > 22 
+          ? item.pdfFile.name.substring(0, 19) + '...' 
+          : item.pdfFile.name;
+      }
+      if (docPagesEl && item.totalPages) {
+        docPagesEl.textContent = `${item.totalPages} Page(s)`;
+      }
+      if (currPageEl && item.pageNumber) {
+        currPageEl.textContent = `Page ${item.pageNumber} of ${item.totalPages || '?'}`;
+      }
+
+      // If item has original PDF document reference, re-render at exact target resolution!
+      if (item.pdfDoc && item.pageNumber) {
+        const page = await item.pdfDoc.getPage(item.pageNumber);
+        const actualScale = state.pdfMode === 'extract' ? Math.max(scale, 2.5) : scale;
+        const viewport = page.getViewport({ scale: actualScale });
+
+        canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+
+        // Solid background for JPG
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        await page.render({
+          canvasContext: ctx,
+          viewport: viewport
+        }).promise;
+      } else if (item.originalCanvas) {
+        canvas = document.createElement('canvas');
+        canvas.width = item.originalCanvas.width;
+        canvas.height = item.originalCanvas.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(item.originalCanvas, 0, 0);
+      } else if (item.image) {
+        canvas = document.createElement('canvas');
+        canvas.width = item.image.naturalWidth;
+        canvas.height = item.image.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(item.image, 0, 0);
+      }
+
+      const blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+      
+      const baseName = item.baseName || 'document';
+      const pageNumStr = item.pageNumber ? `-page-${item.pageNumber}` : '';
+      const name = `${baseName}${pageNumStr}.jpg`;
+
+      const origSize = (item.pdfFile ? item.pdfFile.size : item.file.size);
+
+      return {
+        canvas,
+        blob,
+        name,
+        originalSize: origSize,
+        newSize: blob.size
+      };
+    }
   }
 };

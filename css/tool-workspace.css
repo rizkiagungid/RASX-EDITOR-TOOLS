@@ -174,6 +174,79 @@
   color: var(--text-secondary);
 }
 
+/* PDF to JPG Specific Dropzone Styling */
+.dropzone-btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+.cloud-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-cloud-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-cloud-icon:hover {
+  background: #dc2626;
+  transform: scale(1.12);
+}
+
+.dropzone-hint {
+  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  margin-top: 14px;
+  font-weight: 500;
+}
+
+.dropzone-container.pdf-mode {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.dropzone-container.pdf-mode.dragover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.dropzone-container.pdf-mode .dropzone-icon-bubble {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.dropzone-container.pdf-mode .btn-primary {
+  background: #e5322d;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 16px 42px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -4px rgba(239, 68, 68, 0.45);
+  border: none;
+}
+
+.dropzone-container.pdf-mode .btn-primary:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 14px 28px -4px rgba(239, 68, 68, 0.55);
+}
+
 /* Main Interactive Area (When files are loaded) */
 .workspace-main {
   flex: 1;

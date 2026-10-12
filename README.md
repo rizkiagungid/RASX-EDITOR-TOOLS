@@ -31,7 +31,7 @@
 
 ## 🚀 Fitur Utama & Daftar Tools
 
-Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
+Rasx Tools dilengkapi dengan **13 alat pengolah gambar & dokumen lengkap**:
 
 | No | Tool | Kategori | Deskripsi |
 |---|---|---|---|
@@ -41,12 +41,13 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 | 4 | **Convert IMAGE** | Convert | Konversi universal bolak-balik antara JPG, PNG, WEBP, GIF, BMP, dan ICO (Favicon). |
 | 5 | **Convert to JPG** | Convert | Konversi massal dari PNG, WEBP, GIF, SVG, BMP ke JPG berkualitas tinggi. |
 | 6 | **Convert from JPG** | Convert | Konversi massal JPG ke format PNG (dengan alpha channel), WEBP, atau GIF. |
-| 7 | **Upscale Image** | Optimize | Perbesar resolusi gambar 2X / 4X dengan algoritma *Laplacian Edge-Sharpening*. |
-| 8 | **Remove Background** | Edit | Deteksi dan hapus warna latar belakang foto secara otomatis menjadi transparan. |
-| 9 | **Watermark IMAGE** | Security | Tambahkan cap teks kustom dengan posisi 9-grid, rotasi, opacity, atau pola ubin berulang (*Tile Pattern*). |
-| 10 | **Meme Generator** | Create | Pembuat meme klasik instan dengan teks atas & bawah, font Impact, dan outline tebal. |
-| 11 | **Rotate IMAGE** | Edit | Putar gambar 90°, 180°, 270°, cermin (Flip Horizontal/Vertical), atau sudut kustom. |
-| 12 | **Photo Editor** | Edit | Suite edit foto lengkap: Brightness, Contrast, Saturation, Blur, dan Filter Tone (*Noir, Vintage, Sunset, Cyber*). |
+| 7 | **PDF to JPG** | Convert | Konversi setiap halaman dokumen PDF ke gambar JPG berkualitas tinggi (hingga 216 DPI) atau ekstrak gambar massal. |
+| 8 | **Upscale Image** | Optimize | Perbesar resolusi gambar 2X / 4X dengan algoritma *Laplacian Edge-Sharpening*. |
+| 9 | **Remove Background** | Edit | Deteksi dan hapus warna latar belakang foto secara otomatis menjadi transparan. |
+| 10 | **Watermark IMAGE** | Security | Tambahkan cap teks kustom dengan posisi 9-grid, rotasi, opacity, atau pola ubin berulang (*Tile Pattern*). |
+| 11 | **Meme Generator** | Create | Pembuat meme klasik instan dengan teks atas & bawah, font Impact, dan outline tebal. |
+| 12 | **Rotate IMAGE** | Edit | Putar gambar 90°, 180°, 270°, cermin (Flip Horizontal/Vertical), atau sudut kustom. |
+| 13 | **Photo Editor** | Edit | Suite edit foto lengkap: Brightness, Contrast, Saturation, Blur, dan Filter Tone (*Noir, Vintage, Sunset, Cyber*). |
 
 ---
 
@@ -104,7 +105,21 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 
 ---
 
-### 5. 🔍 Upscale Image (Super-Resolution)
+### 5. 📄 PDF to JPG (Konversi Dokumen PDF ke Gambar)
+1. Buka tool **PDF to JPG**.
+2. Klik tombol merah **Select PDF file** atau drag & drop file PDF ke area dropzone.
+3. Seluruh halaman dokumen PDF akan diekstrak dan dirender secara instan di browser Anda.
+4. Sesuaikan opsi di bilah sidebar:
+   - **Conversion Mode**: *Page to JPG* (konversi per halaman utuh) atau *Extract Images* (resolusi maksimum).
+   - **JPG Image Quality**: Atur slider kualitas (default: `92%`).
+   - **Output Resolution (DPI)**: Pilihan resolusi dari `Standard (72 DPI)`, `Medium (108 DPI)`, `High Quality (144 DPI)`, hingga `Ultra HD (216 DPI)`.
+   - **Page Background**: Putih bersih (*White*), Abu-abu lembut, atau Gelap (*Midnight*).
+5. Preview setiap halaman di viewport atau klik thumbnail di galeri bawah.
+6. Klik **Download Active Page** untuk mengunduh halaman yang sedang dilihat, atau klik **Download All as ZIP** untuk mengunduh seluruh halaman dalam satu file `.zip`.
+
+---
+
+### 6. 🔍 Upscale Image (Super-Resolution)
 1. Buka tool **Upscale Image**.
 2. Pilih faktor pembesaran: **2X Super-Res** atau **4X Ultra-Res**.
 3. Atur slider **Edge Sharpening** untuk mempertajam garis tepi dan detail objek agar tidak buram.
@@ -112,7 +127,7 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 
 ---
 
-### 6. 🪄 Remove Background (Hapus Latar Belakang)
+### 7. 🪄 Remove Background (Hapus Latar Belakang)
 1. Buka tool **Remove background**.
 2. Masukkan foto objek yang memiliki latar belakang solid atau kontras.
 3. Sistem secara otomatis mendeteksi warna latar belakang dari sudut foto.
@@ -122,7 +137,7 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 
 ---
 
-### 7. 🏷️ Watermark IMAGE (Beri Cap Gambar)
+### 8. 🏷️ Watermark IMAGE (Beri Cap Gambar)
 1. Buka tool **Watermark IMAGE**.
 2. Masukkan teks watermark pada kolom input (contoh: `Hak Cipta © Rasx Studio`).
 3. Sesuaikan **Font Size**, **Opacity** (transparansi cap), dan **Rotation Angle** (kemiringan sudut `-90°` s/d `+90°`).
@@ -131,7 +146,7 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 
 ---
 
-### 8. 🎭 Meme Generator (Pembuat Meme)
+### 9. 🎭 Meme Generator (Pembuat Meme)
 1. Buka tool **Meme generator**.
 2. Unggah gambar meme Anda.
 3. Isi teks pada kolom **Top Text** (Teks Atas) dan **Bottom Text** (Teks Bawah).
@@ -141,7 +156,7 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 
 ---
 
-### 9. 🔄 Rotate IMAGE (Putar & Balik Gambar)
+### 10. 🔄 Rotate IMAGE (Putar & Balik Gambar)
 1. Buka tool **Rotate IMAGE**.
 2. Gunakan tombol rotasi cepat:
    - `↻ 90° Clockwise` (Putar searah jarum jam)
@@ -153,7 +168,7 @@ Rasx Tools dilengkapi dengan **12 alat pengolah gambar lengkap**:
 
 ---
 
-### 10. 🎨 Photo Editor (Edit Efek & Filter Foto)
+### 11. 🎨 Photo Editor (Edit Efek & Filter Foto)
 1. Buka tool **Photo editor**.
 2. Sesuaikan parameter warna foto:
    - **Brightness**: Mengatur tingkat kecerahan foto.

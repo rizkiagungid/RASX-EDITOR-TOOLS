@@ -6,6 +6,7 @@ import {
   formatBytes, 
   loadImage, 
   readFileAsDataURL, 
+  downloadCanvas,
   downloadBlob, 
   downloadZip, 
   showToast 
@@ -41,6 +42,14 @@ class RasxToolsApp {
     this.modalCloseBtn = document.getElementById('modalCloseBtn');
     
     this.dropzone = document.getElementById('dropzone');
+    this.dropzoneTitle = document.getElementById('dropzoneTitle');
+    this.dropzoneSubtitle = document.getElementById('dropzoneSubtitle');
+    this.dropzoneSelectBtn = document.getElementById('dropzoneSelectBtn');
+    this.cloudButtons = document.getElementById('cloudButtons');
+    this.btnGoogleDrive = document.getElementById('btnGoogleDrive');
+    this.btnDropbox = document.getElementById('btnDropbox');
+    this.dropzoneHint = document.getElementById('dropzoneHint');
+    this.dropzoneFormats = document.getElementById('dropzoneFormats');
     this.fileInput = document.getElementById('fileInput');
     this.workspaceMain = document.getElementById('workspaceMain');
     this.canvasViewport = document.getElementById('canvasViewport');
@@ -189,6 +198,32 @@ class RasxToolsApp {
       }
     });
 
+    // Cloud buttons in dropzone
+    this.btnGoogleDrive?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showToast('Select PDF file from Google Drive or local device', 'info', 2000);
+      this.fileInput?.click();
+    });
+    this.btnDropbox?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showToast('Select PDF file from Dropbox or local device', 'info', 2000);
+      this.fileInput?.click();
+    });
+
+    // Global dragover & drop: dropping a PDF anywhere opens PDF to JPG
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      if (this.modal.classList.contains('active')) return;
+      e.preventDefault();
+      if (e.dataTransfer.files?.length) {
+        const files = Array.from(e.dataTransfer.files);
+        const hasPdf = files.some(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+        if (hasPdf) {
+          this.openTool('pdf-to-jpg', files);
+        }
+      }
+    });
+
     // Action buttons
     this.processBtn?.addEventListener('click', () => this.processAll());
     this.downloadSingleBtn?.addEventListener('click', () => this.downloadActiveItem());
@@ -221,6 +256,52 @@ class RasxToolsApp {
     this.updateDownloadButtons();
     this.processBtn.disabled = false;
 
+    // Customize dropzone UI for PDF to JPG if active
+    if (tool.id === 'pdf-to-jpg') {
+      this.dropzone.classList.add('pdf-mode');
+      if (this.dropzoneTitle) this.dropzoneTitle.textContent = 'PDF to JPG';
+      if (this.dropzoneSubtitle) this.dropzoneSubtitle.textContent = 'Convert each PDF page into a JPG or extract all images contained in a PDF.';
+      if (this.dropzoneSelectBtn) this.dropzoneSelectBtn.textContent = 'Select PDF file';
+      if (this.cloudButtons) this.cloudButtons.style.display = 'flex';
+      if (this.dropzoneHint) this.dropzoneHint.style.display = 'block';
+      if (this.dropzoneFormats) {
+        this.dropzoneFormats.innerHTML = `
+          <span class="format-chip" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;">PDF</span>
+          <span class="format-chip">MULTI-PAGE</span>
+          <span class="format-chip">VECTOR QUALITY</span>
+          <span class="format-chip">INSTANT JPG</span>
+        `;
+      }
+      if (this.processBtn) {
+        this.processBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Convert to JPG & Download</span>
+        `;
+      }
+    } else {
+      this.dropzone.classList.remove('pdf-mode');
+      if (this.dropzoneTitle) this.dropzoneTitle.textContent = 'Select or drag & drop images here';
+      if (this.dropzoneSubtitle) this.dropzoneSubtitle.textContent = 'Click anywhere inside this box to choose files from your device, or paste directly.';
+      if (this.dropzoneSelectBtn) this.dropzoneSelectBtn.textContent = 'Select Images';
+      if (this.cloudButtons) this.cloudButtons.style.display = 'none';
+      if (this.dropzoneHint) this.dropzoneHint.style.display = 'none';
+      if (this.dropzoneFormats) {
+        this.dropzoneFormats.innerHTML = `
+          <span class="format-chip">JPG</span>
+          <span class="format-chip">PNG</span>
+          <span class="format-chip">WEBP</span>
+          <span class="format-chip">GIF</span>
+          <span class="format-chip">SVG</span>
+        `;
+      }
+      if (this.processBtn) {
+        this.processBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+          <span>Apply & Process</span>
+        `;
+      }
+    }
+
     // Initialize tool-specific sidebar controls
     const handler = ToolHandlers[tool.id];
     if (handler && handler.initControls) {
@@ -245,6 +326,18 @@ class RasxToolsApp {
 
   async handleFiles(files) {
     if (!files.length) return;
+
+    const isPdfTool = this.currentTool?.id === 'pdf-to-jpg';
+    const pdfFiles = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+
+    if (isPdfTool || pdfFiles.length > 0) {
+      if (pdfFiles.length === 0) {
+        showToast('Please upload valid PDF file (.pdf).', 'error');
+        return;
+      }
+      await this.handlePdfFiles(pdfFiles);
+      return;
+    }
 
     const validFiles = files.filter(f => f.type.startsWith('image/'));
     if (!validFiles.length) {
@@ -278,15 +371,93 @@ class RasxToolsApp {
     }
   }
 
+  async handlePdfFiles(pdfFiles) {
+    if (!window.pdfjsLib) {
+      showToast('PDF rendering engine is loading, please try again.', 'error');
+      return;
+    }
+
+    this.processingOverlay.classList.add('active');
+    const overlayText = this.processingOverlay.querySelector('p');
+
+    try {
+      for (const file of pdfFiles) {
+        if (overlayText) overlayText.textContent = `Opening ${file.name}...`;
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdfDoc = await loadingTask.promise;
+        const numPages = pdfDoc.numPages;
+
+        const baseName = file.name.replace(/\.pdf$/i, '');
+
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+          if (overlayText) {
+            overlayText.textContent = `Rendering page ${pageNum} of ${numPages} (${file.name})...`;
+          }
+          const page = await pdfDoc.getPage(pageNum);
+          // Render initial preview at crisp 1.5x scale
+          const viewport = page.getViewport({ scale: 1.5 });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          await page.render({ canvasContext: ctx, viewport }).promise;
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+          const image = await loadImage(dataUrl);
+
+          this.filesQueue.push({
+            file: {
+              name: `${baseName}-page-${pageNum}.jpg`,
+              size: Math.round(dataUrl.length * 0.75),
+              type: 'image/jpeg'
+            },
+            pdfFile: file,
+            pdfDoc: pdfDoc,
+            pageNumber: pageNum,
+            totalPages: numPages,
+            baseName: baseName,
+            image: image,
+            dataUrl: dataUrl,
+            originalCanvas: canvas,
+            processed: null
+          });
+        }
+
+        showToast(`Successfully extracted ${numPages} page(s) from "${file.name}"!`, 'success');
+      }
+
+      if (this.filesQueue.length > 0) {
+        this.dropzone.style.display = 'none';
+        this.workspaceMain.style.display = 'flex';
+        this.renderQueue();
+        this.setActiveQueueItem(0);
+        this.updateDownloadButtons();
+      }
+    } catch (err) {
+      console.error('Failed to load PDF:', err);
+      showToast(`Failed to parse PDF: ${err.message || 'Error'}`, 'error');
+    } finally {
+      this.processingOverlay.classList.remove('active');
+      if (overlayText) overlayText.textContent = 'Processing images, please wait...';
+    }
+  }
+
   renderQueue() {
     this.queueContainer.innerHTML = '';
 
     this.filesQueue.forEach((item, index) => {
       const qItem = document.createElement('div');
       qItem.className = `queue-item ${index === this.activeQueueIndex ? 'active' : ''}`;
+      const badgeText = item.pageNumber ? `P.${item.pageNumber}` : `${index + 1}`;
+      const titleText = item.pageNumber ? `Page ${item.pageNumber} of ${item.totalPages}` : `Image #${index + 1}`;
       qItem.innerHTML = `
         <img src="${item.dataUrl}" alt="Thumbnail">
-        <div class="queue-item-index">${index + 1}</div>
+        <div class="queue-item-index" title="${titleText}">${badgeText}</div>
         <div class="queue-item-download" title="Download this specific image">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
@@ -353,11 +524,15 @@ class RasxToolsApp {
 
     if (this.downloadGroup) this.downloadGroup.style.display = 'flex';
 
+    const isPdf = this.currentTool?.id === 'pdf-to-jpg';
+    const activeItem = this.filesQueue[this.activeQueueIndex];
+    const pageLabel = isPdf && activeItem?.pageNumber ? `Page #${activeItem.pageNumber}` : `#${this.activeQueueIndex + 1}`;
+
     if (this.downloadSingleBtn) {
       this.downloadSingleBtn.style.display = 'flex';
       this.downloadSingleBtn.innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Download Active Image (#${this.activeQueueIndex + 1})</span>
+        <span>Download Active ${isPdf ? 'Page' : 'Image'} (${pageLabel})</span>
       `;
     }
 
@@ -366,7 +541,7 @@ class RasxToolsApp {
         this.downloadZipBtn.style.display = 'flex';
         this.downloadZipBtn.innerHTML = `
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/><path d="M14 12h7"/></svg>
-          <span>Download All as ZIP (${count} Images)</span>
+          <span>Download All as ZIP (${count} ${isPdf ? 'Pages' : 'Images'})</span>
         `;
       } else {
         this.downloadZipBtn.style.display = 'none';
@@ -428,8 +603,16 @@ class RasxToolsApp {
         item.processed = res;
       }
 
-      showToast(`Successfully processed all ${this.filesQueue.length} image(s)!`, 'success');
       this.updateDownloadButtons();
+
+      // Trigger instant download on conversion for best user experience
+      if (this.filesQueue.length === 1) {
+        showToast(`Processing complete! Downloading image...`, 'success');
+        await this.downloadSingleItem(0);
+      } else {
+        showToast(`Processing complete! Downloading ZIP package...`, 'success');
+        await this.downloadAllZip();
+      }
     } catch (err) {
       console.error('Process error:', err);
       showToast('An error occurred during processing.', 'error');
@@ -449,13 +632,25 @@ class RasxToolsApp {
 
     try {
       if (!item.processed) {
-        showToast(`Preparing image #${index + 1}...`, 'info', 1000);
+        showToast(`Preparing #${index + 1}...`, 'info', 1000);
         item.processed = await handler.process(item, this.toolState);
       }
 
+      const fileName = item.processed?.name || item.file?.name || `image_${index + 1}.jpg`;
+
+      // 1. Direct Canvas Data URL download (immune to Chrome Blob UUID bug)
+      if (item.processed?.canvas) {
+        const mime = this.currentTool?.id === 'pdf-to-jpg' ? 'image/jpeg' : (item.file?.type || 'image/jpeg');
+        const quality = this.toolState?.quality !== undefined ? this.toolState.quality : 0.92;
+        downloadCanvas(item.processed.canvas, fileName, mime, quality);
+        showToast(`Downloaded #${index + 1} (${fileName})!`, 'success');
+        return;
+      }
+
+      // 2. Otherwise download using robust downloadBlob
       if (item.processed?.blob) {
-        downloadBlob(item.processed.blob, item.processed.name || `image_${index + 1}.jpg`);
-        showToast(`Downloaded #${index + 1} (${item.processed.name})!`, 'success');
+        await downloadBlob(item.processed.blob, fileName);
+        showToast(`Downloaded #${index + 1} (${fileName})!`, 'success');
       }
     } catch (err) {
       console.error('Failed to download item:', err);
@@ -500,7 +695,9 @@ class RasxToolsApp {
         overlayText.textContent = 'Compressing into ZIP archive...';
       }
 
-      const zipName = `${this.currentTool.id}-rasx-batch.zip`;
+      const zipName = this.currentTool.id === 'pdf-to-jpg' && this.filesQueue[0]?.baseName
+        ? `${this.filesQueue[0].baseName}-jpg-pages.zip`
+        : `${this.currentTool.id}-rasx-batch.zip`;
       await downloadZip(zipFiles, zipName);
       showToast(`ZIP package with ${zipFiles.length} images downloaded!`, 'success');
     } catch (err) {
