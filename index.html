@@ -15,6 +15,27 @@
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/tool-workspace.css">
+
+  <!-- Immediate Theme Initializer (Prevents White Flash / FOUC) -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('rasx_theme');
+        if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          saved = 'dark';
+        }
+        var theme = saved === 'dark' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.style.colorScheme = 'light';
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <!-- Ambient background glow elements -->
@@ -62,8 +83,10 @@
 
       <!-- Nav Actions -->
       <div class="nav-actions">
-        <button id="themeToggleBtn" class="btn-icon" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <button id="themeToggleBtn" class="btn-icon btn-theme-toggle theme-toggle-btn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme" type="button">
+          <span class="theme-toggle-icon" style="display:flex; align-items:center; justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon moon-icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </span>
         </button>
       </div>
     </div>
@@ -291,6 +314,10 @@
         <a href="#tutorial">Tutorial</a>
         <a href="#owner">Owner & Kontak</a>
         <a href="https://wa.me/6281290053660" target="_blank">WhatsApp</a>
+        <button id="footerThemeToggleBtn" class="footer-theme-btn btn-theme-toggle theme-toggle-btn" title="Toggle Light / Dark Mode" type="button" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 5px 12px; border-radius: var(--radius-full); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-family: var(--font-main); transition: var(--transition);">
+          <span class="theme-toggle-icon" style="display: flex; align-items: center;"></span>
+          <span class="theme-toggle-text">Dark Mode</span>
+        </button>
       </div>
     </div>
   </footer>
@@ -308,6 +335,11 @@
           </div>
         </div>
         <div class="workspace-actions">
+          <button class="btn-icon btn-theme-toggle theme-toggle-btn" id="modalThemeToggleBtn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme in Workspace" type="button">
+            <span class="theme-toggle-icon" style="display:flex; align-items:center; justify-content:center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </span>
+          </button>
           <button class="btn-icon" id="modalCloseBtn" title="Close Workspace (Esc)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -393,6 +425,9 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Theme Manager (Immediate execution & zero-dependency) -->
+  <script src="js/theme.js"></script>
+
   <!-- PDF.js Library for PDF to JPG conversion -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -402,7 +437,16 @@
   </script>
   <!-- JSZip Library for bulk zip download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- Application Entrypoint -->
-  <script type="module" src="js/app.js"></script>
+  
+  <!-- Main Application (Bundled script for universal support: HTTP, HTTPS & local file://) -->
+  <script src="js/app.bundle.js"></script>
+  <script type="module">
+    // Fallback module loader if bundle didn't initialize
+    if (!window.rasxApp) {
+      import('./js/app.js').catch(function(e) {
+        console.warn('Module fallback skipped:', e);
+      });
+    }
+  </script>
 </body>
 </html>

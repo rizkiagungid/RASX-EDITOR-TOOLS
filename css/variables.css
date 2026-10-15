@@ -1,4 +1,7 @@
 :root {
+  /* Color Scheme declaration for native controls */
+  color-scheme: light;
+
   /* Color Palette - Light Mode */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
@@ -59,18 +62,24 @@
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-[data-theme="dark"] {
+/* Dark Mode Tokens - Supports [data-theme="dark"], html.dark, and system preference fallback */
+[data-theme="dark"],
+html.dark,
+:root[data-theme="dark"] {
+  /* Color Scheme declaration for native controls */
+  color-scheme: dark;
+
   /* Color Palette - Dark Mode */
   --bg-primary: #090d16;
   --bg-secondary: #0f172a;
-  --bg-tertiary: #1e293b;
-  --bg-card: #131d31;
-  --bg-card-hover: #1a2744;
-  --bg-input: #1e293b;
+  --bg-tertiary: #162033;
+  --bg-card: #111a2e;
+  --bg-card-hover: #17243e;
+  --bg-input: #152037;
   
-  --border-color: #243049;
-  --border-subtle: #192338;
-  --border-hover: #3b4d70;
+  --border-color: #22304d;
+  --border-subtle: #172238;
+  --border-hover: #384c73;
   
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
@@ -80,31 +89,84 @@
   /* Brand Accents Dark */
   --primary: #3b82f6;
   --primary-hover: #60a5fa;
-  --primary-light: rgba(59, 130, 246, 0.15);
-  --primary-glow: rgba(59, 130, 246, 0.35);
+  --primary-light: rgba(59, 130, 246, 0.16);
+  --primary-glow: rgba(59, 130, 246, 0.4);
   
   --accent-purple: #a855f7;
-  --accent-purple-light: rgba(168, 85, 247, 0.15);
+  --accent-purple-light: rgba(168, 85, 247, 0.16);
   --accent-coral: #fb7185;
-  --accent-coral-light: rgba(251, 113, 133, 0.15);
+  --accent-coral-light: rgba(251, 113, 133, 0.16);
   --accent-emerald: #34d399;
-  --accent-emerald-light: rgba(52, 211, 153, 0.15);
+  --accent-emerald-light: rgba(52, 211, 153, 0.16);
   --accent-amber: #fbbf24;
-  --accent-amber-light: rgba(251, 191, 36, 0.15);
+  --accent-amber-light: rgba(251, 191, 36, 0.16);
   --accent-cyan: #22d3ee;
-  --accent-cyan-light: rgba(34, 211, 238, 0.15);
+  --accent-cyan-light: rgba(34, 211, 238, 0.16);
 
   /* UI Tokens Dark */
-  --header-bg: rgba(15, 23, 42, 0.85);
-  --header-border: rgba(36, 48, 73, 0.8);
-  --modal-overlay: rgba(0, 0, 0, 0.8);
+  --header-bg: rgba(15, 23, 42, 0.88);
+  --header-border: rgba(36, 48, 73, 0.85);
+  --modal-overlay: rgba(0, 0, 0, 0.82);
   --modal-bg: #0f172a;
   --workspace-bg: #070b12;
-  --checkerboard-1: #1e293b;
+  --checkerboard-1: #1a2538;
   --checkerboard-2: #0f172a;
   
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px -5px var(--primary-glow);
+}
+
+/* System Dark Mode Fallback (when no explicit theme attribute is set) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-primary: #090d16;
+    --bg-secondary: #0f172a;
+    --bg-tertiary: #162033;
+    --bg-card: #111a2e;
+    --bg-card-hover: #17243e;
+    --bg-input: #152037;
+    
+    --border-color: #22304d;
+    --border-subtle: #172238;
+    --border-hover: #384c73;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --text-inverse: #0f172a;
+
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-light: rgba(59, 130, 246, 0.16);
+    --primary-glow: rgba(59, 130, 246, 0.4);
+    
+    --accent-purple: #a855f7;
+    --accent-purple-light: rgba(168, 85, 247, 0.16);
+    --accent-coral: #fb7185;
+    --accent-coral-light: rgba(251, 113, 133, 0.16);
+    --accent-emerald: #34d399;
+    --accent-emerald-light: rgba(52, 211, 153, 0.16);
+    --accent-amber: #fbbf24;
+    --accent-amber-light: rgba(251, 191, 36, 0.16);
+    --accent-cyan: #22d3ee;
+    --accent-cyan-light: rgba(34, 211, 238, 0.16);
+
+    --header-bg: rgba(15, 23, 42, 0.88);
+    --header-border: rgba(36, 48, 73, 0.85);
+    --modal-overlay: rgba(0, 0, 0, 0.82);
+    --modal-bg: #0f172a;
+    --workspace-bg: #070b12;
+    --checkerboard-1: #1a2538;
+    --checkerboard-2: #0f172a;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 30px -5px var(--primary-glow);
+  }
 }
